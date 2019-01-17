@@ -17,6 +17,8 @@ Usage
 
 Once installed, to use the tool simply add
 
+.. code::
+
     env = Environment(tools=["default", "dtxtools"])
 
 to your ``SConstruct``.
@@ -25,6 +27,8 @@ to your ``SConstruct``.
             use of them to handle the regular TeX to PDF conversion.
 
 Then, you specify a document via
+
+.. code::
 
    stys = env.ins2sty([], "mystyle.ins")
    doc = env.PDF("mystys.dtx",
@@ -45,6 +49,8 @@ the `SCons user's guide`_.
 
 Alternatively, you can add this project as a submodule to your git
 project using
+
+.. code::
 
     git submodule add <url> site_scons/site_tools/dtxtools
 
