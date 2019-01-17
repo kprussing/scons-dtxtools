@@ -57,12 +57,12 @@ def _ins_emitter(target, source, env):
     match   = re.search(r"\\BaseDirectory{(.*?)}", ins, flags)
     basedir = match.group(1) if match else None
     match   = re.search(r"\\usedir{(.*?)}", ins, flags)
-    usedir  = match.group(1) if match else None
-    outdir  = os.path.join(basedir, usedir)
+    usedir  = match.group(1) if match else os.curdir
+    outdir  = os.path.join(basedir, usedir) if basedir else usedir
 
     pattern = r"\\file{\s*(.*?)\s*}\s*{\s*\\from{(.*?)}{.*?}\s*}"
     for tgt, src in re.findall(pattern, ins, flags):
-        target.append( os.path.join(outdir, tgt) )
+        target.append( os.path.join(outdir, tgt) if outdir else tgt )
         src_ = [x.strip() for x in src.split(",")]
         source.extend([x for x in src_ if x not in source])
 
