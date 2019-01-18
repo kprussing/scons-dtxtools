@@ -51,7 +51,7 @@ def _ins_emitter(target, source, env):
     """Scan the .ins file for the generated files
     """
     with open(str(source[0]), "r") as src:
-        ins = src.read()
+        ins = re.sub(r"[^\\]%.*", "", src.read())
 
     flags = re.MULTILINE | re.DOTALL
     match   = re.search(r"\\BaseDirectory{(.*?)}", ins, flags)
