@@ -51,38 +51,28 @@ def _ins_emitter(target, source, env):
     """Scan the .ins file for the generated files
     """
     basedir = None
-    usedir = os.curdir
-    pattern = r"\\file{\s*(.*?)\s*}\s*{\s*\\from{(.*?)}{.*?}\s*}"
+    outdir = None
+    pattern = r"\\(" + "|".join([
+            r"file{\s*(.*?)\s*}\s*{\s*\\from{(.*?)}\s*{.*?}\s*}",
+            r"usedir{\s*(.*?)\s*}",
+            r"BaseDirectory{\s*(.*?)\s*}"
+        ]) + ")"
     with open(str(source[0]), "r") as src:
-        for line in src:
-            ins = re.sub(r"[^\\]%.*", "", line)
-            match = re.search(r"\\BaseDirectory{(.*?)}", ins)
-            if match:
-                if basedir is not None:
-                    raise RuntimeError("Duplicate BaseDirectory found")
+        ins = re.sub(r"[^\\]%.*", "", src.read())
 
-                basedir = match.group(1)
-                continue
-
-            match = re.search(r"\\usedir{(.*?)}", ins)
-            if match:
-                usedir = match.group(1)
-                continue
-
-            outdir  = os.path.join(basedir, usedir) if basedir \
-                                                    else usedir
-            match = re.search(pattern, ins)
-            if match:
-                # if outdir not in target:
-                    # target.append(env.Dir(outdir))
-
-                tgt = os.path.join(outdir, match.group(1))
-                if tgt not in target:
-                    target.append(tgt)
-                    # env.Depends(tgt, outdir)
-
-                src = [x.strip() for x in match.group(2).split(",")]
-                source.extend([x for x in src if x not in source])
+    flags = re.MULTILINE | re.DOTALL
+    for pat, tgt, src, usedir, base in re.findall(pattern, ins, flags):
+        if re.match("file", pat):
+            target.append(os.path.join(outdir, tgt) if outdir else tgt)
+            source.extend([x.strip() for x in src.split(",")])
+        elif re.match("usedir", pat) and usedir:
+            outdir = os.path.join(basedir, usedir) if basedir \
+                                                   else outdir
+        elif re.match("BaseDirectory", pat) and base:
+            basedir = base
+        else:
+            # This should never actually happen.
+            raise NotImplementedError
 
     # print("source: {0}".format([str(x) for x in source]))
     # print("target: {0}".format([str(x) for x in target]))
