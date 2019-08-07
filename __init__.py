@@ -50,21 +50,39 @@ def _dtx_emitter(target, source, env):
 def _ins_emitter(target, source, env):
     """Scan the .ins file for the generated files
     """
-    with open(str(source[0]), "r") as src:
-        ins = re.sub(r"[^\\]%.*", "", src.read())
-
-    flags = re.MULTILINE | re.DOTALL
-    match   = re.search(r"\\BaseDirectory{(.*?)}", ins, flags)
-    basedir = match.group(1) if match else None
-    match   = re.search(r"\\usedir{(.*?)}", ins, flags)
-    usedir  = match.group(1) if match else os.curdir
-    outdir  = os.path.join(basedir, usedir) if basedir else usedir
-
+    basedir = None
+    usedir = os.curdir
     pattern = r"\\file{\s*(.*?)\s*}\s*{\s*\\from{(.*?)}{.*?}\s*}"
-    for tgt, src in re.findall(pattern, ins, flags):
-        target.append( os.path.join(outdir, tgt) if outdir else tgt )
-        src_ = [x.strip() for x in src.split(",")]
-        source.extend([x for x in src_ if x not in source])
+    with open(str(source[0]), "r") as src:
+        for line in src:
+            ins = re.sub(r"[^\\]%.*", "", line)
+            match = re.search(r"\\BaseDirectory{(.*?)}", ins)
+            if match:
+                if basedir is not None:
+                    raise RuntimeError("Duplicate BaseDirectory found")
+
+                basedir = match.group(1)
+                continue
+
+            match = re.search(r"\\usedir{(.*?)}", ins)
+            if match:
+                usedir = match.group(1)
+                continue
+
+            outdir  = os.path.join(basedir, usedir) if basedir \
+                                                    else usedir
+            match = re.search(pattern, ins)
+            if match:
+                # if outdir not in target:
+                    # target.append(env.Dir(outdir))
+
+                tgt = os.path.join(outdir, match.group(1))
+                if tgt not in target:
+                    target.append(tgt)
+                    # env.Depends(tgt, outdir)
+
+                src = [x.strip() for x in match.group(2).split(",")]
+                source.extend([x for x in src if x not in source])
 
     # print("source: {0}".format([str(x) for x in source]))
     # print("target: {0}".format([str(x) for x in target]))
@@ -73,6 +91,10 @@ def _ins_emitter(target, source, env):
 
 _ins2sty = Builder(action=Action("$INS2STYCOM", "$INS2STYCOMSTR"),
                    emitter=_ins_emitter)
+_dtxidx = Builder(action=Action("$DTXIDXCOM", "$DTXIDXCOMSTR"),
+                  source_suffix=".idx", suffix=".ind")
+_dtxglo = Builder(action=Action("$DTXGLOCOM", "$DTXGLOCOMSTR"),
+                  source_suffix=".glo", suffix=".gls")
 
 
 def generate(env):
@@ -88,8 +110,14 @@ def generate(env):
     env.SetDefault(
             INS2STYCOM = "$INS2STY ${SOURCE}",
             INS2STYCOMSTR = "",
+            # DTXIDXCOM = "$MAKEINDEX -s gind.ist -o ${TARGET} ${SOURCE}",
+            # DTXIDXCOMSTR = "",
+            # DTXGLOCOM = "$MAKEINDEX -s gglo.ist -o ${TARGET} ${SOURCE}",
+            # DTXGLOCOMSTR = "",
         )
     env["BUILDERS"]["ins2sty"] = _ins2sty
+    # env["BUILDERS"]["dtxidx"] = _dtxidx
+    # env["BUILDERS"]["dtxglo"] = _dtxglo
     return
 
 
