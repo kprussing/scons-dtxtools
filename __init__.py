@@ -81,10 +81,6 @@ def _ins_emitter(target, source, env):
 
 _ins2sty = Builder(action=Action("$INS2STYCOM", "$INS2STYCOMSTR"),
                    emitter=_ins_emitter)
-_dtxidx = Builder(action=Action("$DTXIDXCOM", "$DTXIDXCOMSTR"),
-                  source_suffix=".idx", suffix=".ind")
-_dtxglo = Builder(action=Action("$DTXGLOCOM", "$DTXGLOCOMSTR"),
-                  source_suffix=".glo", suffix=".gls")
 
 
 def generate(env):
@@ -100,14 +96,10 @@ def generate(env):
     env.SetDefault(
             INS2STYCOM = "$INS2STY ${SOURCE}",
             INS2STYCOMSTR = "",
-            # DTXIDXCOM = "$MAKEINDEX -s gind.ist -o ${TARGET} ${SOURCE}",
-            # DTXIDXCOMSTR = "",
-            # DTXGLOCOM = "$MAKEINDEX -s gglo.ist -o ${TARGET} ${SOURCE}",
-            # DTXGLOCOMSTR = "",
         )
     env["BUILDERS"]["ins2sty"] = _ins2sty
-    # env["BUILDERS"]["dtxidx"] = _dtxidx
-    # env["BUILDERS"]["dtxglo"] = _dtxglo
+    env["MAKEINDEXFLAGS"] = "-s gind.ist"
+    env["MAKEGLOSSARYSTYLE"] = "gglo.ist"
     return
 
 
