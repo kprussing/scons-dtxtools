@@ -43,7 +43,7 @@ def _dtx_emitter(target, source, env):
     """
     root, _ = os.path.splitext(str(source[0]))
     target, source = tex_pdf_emitter(target, source, env)
-    target.extend([root + x for x in (".ilg", ".ind")])
+    target.extend([root + x for x in (".ilg", ".ind", ".gls", ".glg")])
     return target, source
 
 
