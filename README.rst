@@ -42,10 +42,15 @@ Then, you specify a document via
 Installation
 ------------
 
-To install, simply copy the top of this project to
+To install, simply copy ``sconscontrib/SCons/Tool/dtxtools`` to
 ``site_scons/site_tools`` in your project directory, or you can place it
 in the `appropriate location`_ for your system.  For more details, check
-the `SCons user's guide`_.
+the `SCons user's guide`_.  If you are using SCons 4 or later, you can
+install using
+
+.. code::
+
+    python -m pip install git+https://github.com/kprussing/scons-dtxtools.git
 
 Alternatively, you can add this project as a submodule to your git
 project using
